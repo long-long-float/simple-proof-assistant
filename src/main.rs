@@ -1,5 +1,3 @@
-// TODO: 4. Provide safe term constructors
-
 use std::fmt;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -109,11 +107,11 @@ fn apply_fun(t1: Type, t2: Type) -> Result<Type, String> {
             Ok(*b)
         }
         else {
-            Err(format!("argument type of '{:?}' and '{:?}' must be equal", t1, t2))
+            Err(format!("argument type of '{}' and '{}' must be equal", t1, t2))
         }
     }
     else {
-        Err(format!("'{:?}' must be function type", t1))
+        Err(format!("'{}' must be function type", t1))
     }
 }
 
@@ -161,4 +159,28 @@ fn main() {
     println!("|- {}", ty);
     println!("because");
     println!("|- {} : {}", expr, ty);
+
+    println!("");
+
+    let m = Term::Variable(s!("m"));
+    let n = Term::Variable(s!("n"));
+    let f = Term::Variable(s!("f"));
+    let z = Term::Variable(s!("z"));
+    let a = Type::Variable(s!("a"));
+    // (a -> a) -> (a -> a)
+    let church = fun!(fun!(a.clone(), a.clone()), fun!(a.clone(), a.clone()));
+    let prop = impI!(m.clone(), impI!(n.clone(), impI!(f.clone(), impI!(z.clone(), impE!(
+                            impE!(assume!(m, church.clone()), assume!(f.clone(), fun!(a.clone(), a.clone()))),
+                            impE!(impE!(assume!(n, church), assume!(f, fun!(a.clone(), a.clone()))), assume!(z, a))
+                            )))));
+    match eval(prop) {
+        Ok((expr, ty, _)) => {
+            println!("|- {}", ty);
+            println!("because");
+            println!("|- {} : {}", expr, ty);
+        },
+        Err(msg) => {
+            println!("error: {}", msg);
+        }
+    }
 }
